@@ -1,0 +1,30 @@
+Create an Astro project using the npm create astro@latest command, customize pages in the src/pages directory, and deploy the static site to AWS Amplify by connecting a GitHub repository and configuring a custom domain with CNAME records.
+
+Suggested Steps to Complete this Task:
+
+1. Open your terminal application.
+2. Type the command npm create astro@latest and press enter to start the project setup.
+3. Follow the terminal prompts to choose your project settings and install dependencies.
+4. Open the project folder and locate the src/pages directory which handles the website routing.
+5. Create a new file named hello.astro in the src/pages folder to add a new page to your site.
+6. Add HTML and Astro components to your files to build the site content.
+7. Push your project code to a repository on GitHub.
+8. Open a web browser and log in to the AWS Amplify console.
+9. Click the New App button and select Host a web app from the dropdown menu.
+10. Select GitHub as your repository provider and click Continue.
+11. Choose your project repository and the specific branch you want to deploy.
+12. Review the build settings which define how AWS installs and builds your app.
+13. Click Edit on the build settings and ensure the base directory under the artifacts section is set to dist.
+14. Click Save and then click Next to review your configuration.
+15. Click Save and deploy to begin the automated build process.
+16. Navigate to Domain management in the Amplify sidebar once the deployment starts.
+17. Click Add domain and type in your registered domain name.
+18. Copy the CNAME values provided by Amplify which are used to verify domain ownership.
+19. Log in to your domain registrar website, such as Google Domains, and find the DNS settings.
+20. Create new CNAME records in your DNS settings using the host and value information provided by Amplify.
+21. Create an additional CNAME record for the www subdomain that points to the CloudFront address provided by Amplify.
+22. Go to the Website or Forwarding section of your domain registrar to redirect your root domain to the www version of your site.
+23. Wait for the DNS records to propagate and the SSL certificate to be issued before visiting your live website.
+
+
+https://www.youtube.com/watch?v=0x0IPGpBxCM

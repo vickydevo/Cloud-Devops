@@ -1,0 +1,22 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "s3:*",
+            "Resource": "*",
+            "Principal": "*",
+            "Condition": {
+                arn
+            }
+        }
+
+        {
+            "Effect": "Allow",
+            "Action": "",
+            "Resource": "",
+            "Principal": "",
+            "Condition": {}
+        }
+    ]
+}

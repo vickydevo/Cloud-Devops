@@ -1,0 +1,36 @@
+import boto3
+import logging
+
+# Set up logging for better visibility in CloudWatch
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+# Initialize the Glue client
+glue = boto3.client('glue')
+
+# MUST match exactly: Case-sensitive!
+CRAWLER_NAME = "S3-glue-crawler" 
+
+def lambda_handler(event, context):
+    try:
+        logger.info(f"Attempting to start crawler: {CRAWLER_NAME}")
+        glue.start_crawler(Name=CRAWLER_NAME)
+        return {
+            'statusCode': 200,
+            'body': f"Crawler '{CRAWLER_NAME}' started successfully."
+        }
+    except glue.exceptions.CrawlerRunningException:
+        logger.info("Crawler is already running.")
+        return {
+            'statusCode': 200,
+            'body': "Crawler already running."
+        }
+    except glue.exceptions.EntityNotFoundException:
+        logger.error(f"Crawler '{CRAWLER_NAME}' not found. Check name and region.")
+        return {
+            'statusCode': 404,
+            'body': f"Crawler '{CRAWLER_NAME}' not found."
+        }
+    except Exception as e:
+        logger.error(f"Unexpected error: {str(e)}")
+        raise e

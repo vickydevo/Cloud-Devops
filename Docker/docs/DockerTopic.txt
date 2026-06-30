@@ -1,0 +1,20 @@
+DockerTopics
+------------
+
+what is container? 
+what is Docker?
+why we need Docker?
+what is difference btw docker and VM
+what is OS LEVEL virtualization
+
+What is Hypervisior?
+Show the difference btw deploying application on VM and Docker
+Docker Architechure?
+what is Dockerfile, Docker image, Docker container
+show Docker installation with yum/apt and doc RMP package
+Docker commands
+
+Docker compose
+Docker volumes
+Docker network
+docker with jenkins pipeline

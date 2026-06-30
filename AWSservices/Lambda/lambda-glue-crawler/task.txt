@@ -1,0 +1,437 @@
+Summary Instructions:
+
+Create an automated AWS data pipeline to crawl S3 data using AWS Glue and Lambda. Set up an S3 bucket named S3 CNBC news, configure an IAM role with Glue and S3 permissions, and create a Lambda function to trigger a Glue Crawler when CSV files are uploaded.
+
+Suggested Steps to Complete this Task:
+
+1. Open the AWS Management Console in your web browser.
+2. Navigate to the S3 service and create a bucket named S3 CNBC news to serve as your data source.
+3. Go to the IAM service to create a new role that allows different AWS services to communicate with each other.
+4. Attach the following permissions to the role: AmazonS3FullAccess, AWSGlueServiceRole, AWSLambdaBasicExecutionRole, and AmazonRedshiftAllCommandsFullAccess.
+5. Open the AWS Glue service and click on Crawlers in the left navigation pane.
+6. Click Create crawler and enter the name S3 glue crawler.
+7. Choose S3 as the data store and provide the path s3://S3 CNBC news/ for the crawler to scan.
+8. Select the IAM role you created earlier to give the crawler permission to access your S3 bucket.
+9. Click Add database and create a new database named S3 glue DB which will hold the metadata for your files.
+10. Set the crawler frequency to On demand and click Finish to complete the crawler setup.
+11. Navigate to the Lambda service and click Create function to build the automation trigger.
+12. Name the function trigger S3 crawler and select Python as the runtime environment.
+13. In the code section, use the boto3 library to create a glue client object.
+14. Add the start_crawler command to the script, specifying S3 glue crawler as the target.
+15. Click Deploy to save your code changes.
+16. In the Function overview section, click Add trigger and select S3 from the dropdown menu.
+17. Select the S3 CNBC news bucket and set the event type to PUT so it triggers when new files are uploaded.
+18. Enter .csv in the Suffix field to ensure the trigger only runs for CSV data files.
+19. Go to the S3 service, open your bucket, and upload a CSV file to test the pipeline.
+20. Return to the AWS Glue Crawlers page and verify that the S3 glue crawler status has changed to Running.
+21. Navigate to CloudWatch and check the Log groups for trigger S3 crawler to confirm the Lambda function executed successfully.
+22. Open the Tables section in AWS Glue to see if the crawler successfully inferred the schema and created a metadata table for your data.
+
+Link: https://www.youtube.com/watch?v=pgtOWBa5CEA
+
+
+
+Good exercise 👍 — this is a very common event-driven data engineering pattern.
+
+Upload CSV ➜ S3 event ➜ Lambda ➜ start Glue crawler ➜ table in Data Catalog.
+
+I’ll keep the **same order** you were given, but I’ll correct the bucket naming, IAM trust policies, and give you a working Lambda script.
+
+---
+
+# ✅ Step-by-Step Implementation (Correct & Real-World Ready)
+
+---
+
+## ✅ 1) Login
+
+Open **AWS Management Console**.
+
+---
+
+## ✅ 2) Create S3 Bucket (data source)
+
+⚠️ Bucket names **cannot contain spaces or uppercase**.
+
+Use something like:
+
+```
+s3-cnbc-news
+```
+
+Create bucket → keep defaults → create.
+
+---
+
+## ✅ 3) Create IAM Role (Important Part)
+
+Instead of one role for everything, **best practice** is:
+
+* One role for **Glue**
+* One role for **Lambda**
+
+Because each service needs different trust relationships.
+
+---
+
+# ✅ 3A) Create Role for Glue
+
+Go to **IAM → Roles → Create role**
+
+### Trusted entity:
+
+```
+AWS service → Glue
+```
+
+### Permissions:
+
+Attach:
+
+```
+AWSGlueServiceRole
+AmazonS3FullAccess   (or limit to your bucket in real projects)
+```
+
+### Role name:
+
+```
+GlueCrawlerRole
+```
+
+Create.
+
+---
+
+### ✅ Trust Policy for Glue role should look like:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": { "Service": "glue.amazonaws.com" },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+```
+
+---
+
+---
+
+# ✅ 3B) Create Role for Lambda
+
+IAM → Create role
+
+### Trusted entity:
+
+```
+AWS service → Lambda
+```
+
+### Permissions:
+
+Attach:
+
+```
+AWSLambdaBasicExecutionRole
+AWSGlueServiceRole
+```
+
+(Glue permission is needed so Lambda can start the crawler.)
+
+### Role name:
+
+```
+LambdaGlueTriggerRole
+```
+
+Create.
+
+---
+
+### ✅ Trust Policy for Lambda role:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": { "Service": "lambda.amazonaws.com" },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+```
+
+---
+
+---
+
+## ✅ 4) (Skip – already handled with correct roles)
+
+You **do not** need Redshift permission for this task.
+
+---
+
+---
+
+## ✅ 5) Open AWS Glue
+
+Go to **AWS Glue → Crawlers**.
+
+---
+
+## ✅ 6) Create crawler
+
+Click **Create crawler**
+
+### Name:
+
+```
+s3-glue-crawler
+```
+
+---
+
+## ✅ 7) Data source
+
+Choose:
+
+```
+S3
+```
+
+Path:
+
+```
+s3://s3-cnbc-news/
+```
+
+---
+
+## ✅ 8) IAM Role
+
+Select:
+
+```
+GlueCrawlerRole
+```
+
+---
+
+## ✅ 9) Create database
+
+Click **Add database**
+
+Name:
+
+```
+s3_glue_db
+```
+
+Create → select it.
+
+---
+
+## ✅ 10) Frequency
+
+Choose:
+
+```
+On demand
+```
+
+Create crawler → Finish.
+
+---
+
+---
+
+## ✅ 11) Create Lambda function
+
+Go to **Lambda → Create function**
+
+### Choose:
+
+```
+Author from scratch
+```
+
+### Function name:
+
+```
+trigger-s3-crawler
+```
+
+### Runtime:
+
+```
+Python 3.x
+```
+
+### Permissions:
+
+Choose existing role →
+
+```
+LambdaGlueTriggerRole
+```
+
+Create.
+
+---
+
+---
+
+## ✅ 12–14) Lambda Script (boto3)
+
+Open **Code** section → replace everything with:
+
+```python
+import boto3
+import os
+
+glue = boto3.client('glue')
+
+CRAWLER_NAME = "s3-glue-crawler"
+
+def lambda_handler(event, context):
+    try:
+        response = glue.start_crawler(Name=CRAWLER_NAME)
+        print(f"Crawler started: {CRAWLER_NAME}")
+    except glue.exceptions.CrawlerRunningException:
+        print("Crawler already running.")
+    except Exception as e:
+        print(f"Error: {str(e)}")
+```
+
+---
+
+## ✅ 15) Click Deploy
+
+---
+
+---
+
+## ✅ 16) Add Trigger
+
+Function overview → **Add trigger**
+
+Choose:
+
+```
+S3
+```
+
+---
+
+## ✅ 17) Configure trigger
+
+Bucket:
+
+```
+s3-cnbc-news
+```
+
+Event type:
+
+```
+All object create events (PUT)
+```
+
+---
+
+## ✅ 18) Suffix
+
+```
+.csv
+```
+
+Enable → Add.
+
+---
+
+---
+
+## ✅ 19) Test
+
+Upload a CSV file into:
+
+```
+s3://s3-cnbc-news/
+```
+
+Example:
+
+```
+news.csv
+```
+
+---
+
+---
+
+## ✅ 20) Check crawler
+
+Go to **Glue → Crawlers**
+
+You should see:
+
+```
+Running
+```
+
+---
+
+---
+
+## ✅ 21) Verify Lambda execution
+
+Go to:
+
+**CloudWatch → Log groups → /aws/lambda/trigger-s3-crawler**
+
+Open latest log stream.
+
+You should see:
+
+```
+Crawler started
+```
+
+---
+
+---
+
+## ✅ 22) Verify table creation
+
+Go to:
+
+**Glue → Databases → s3_glue_db → Tables**
+
+You should see schema auto-created.
+
+---
+
+---
+
+# ✅ Final Architecture (Interview Style Answer)
+
+“When a CSV file is uploaded into S3, an event notification triggers a Lambda function. The Lambda function uses boto3 to start an AWS Glue crawler. The crawler scans the data, infers the schema, and updates the Glue Data Catalog table.”
+
+---
+
+If you want, I can also teach you:
+
+✅ how companies restrict IAM instead of FullAccess
+✅ how to pass bucket name dynamically
+✅ how to trigger Glue Jobs after crawler
+✅ how Athena queries the table
+✅ real interview questions from this scenario
+
+What would you like next?
