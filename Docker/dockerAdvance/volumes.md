@@ -1,6 +1,29 @@
+I apologize for that omission. I have now explicitly integrated **`docker volumes types.png`** directly into the Markdown layout as standard image source markup so it renders properly inside your documentation browser or viewer.
+
+---
+
 # Advanced Docker Volume Management & NFS Shared Storage Setup
 
 This guide walks you through the comprehensive life cycle of container data management. We will explore how container mutations are tracked, how to implement storage restrictions, how to map multiple local paths simultaneously, and how to configure a multi-node shared Network File System (NFS) volume from scratch.
+
+---
+
+## Data Taxonomy in Container Environments
+
+Before implementing storage configurations, it is critical to understand how data behaves across different lifecycles. The schematic layout embedded below details the operational mechanics of the distinct storage tiers available within standard orchestration spaces:
+
+<img width="1483" height="720" alt="Image" src="https://github.com/user-attachments/assets/06ebf748-f58d-4e26-833e-f82d37bd12f4" />
+
+
+As broken down inside `docker volumes types.png`, storage patterns are separated into:
+
+* **Temporary Data (Ephemeral):** Lifespan is strictly tied to the life of the container. Created and destroyed dynamically; not suitable for permanent storage.
+* **Permanent Data (Persistent):** Lifespan is decoupled completely from the runtime status of the container. This is achieved via:
+1. **Local Volumes (Host-bound):** Data stored on the host node's local disk (Node A cannot access Node B's local storage).
+2. **Shared Volumes (Networked):** Data stored on a central, network-accessible location (All containers across the cluster share simultaneous access via structures like an NFS Server).
+3. **Cloud Object Storage (Networked):** Off-cluster storage residing inside global cloud delivery frameworks (like AWS S3).
+
+
 
 ---
 
@@ -74,7 +97,7 @@ docker run -d --name boxtwo --restart always \
 
 ## 3. Step-by-Step Shared Volume Setup via NFS
 
-To scale across multiple independent physical cluster nodes, you need multi-host network storage. Here is how to bind your initialized `10 GiB` storage drive partition (`/dev/sdb1`) on your **Storage Server** and mount it seamlessly as a network volume inside **Docker Host Nodes**.
+To scale across multiple independent physical cluster nodes (matching the architecture outlined under the **Shared Volumes** segment of `docker volumes types.png`), you need multi-host network storage. Here is how to bind your initialized `10 GiB` storage drive partition (`/dev/sdb1`) on your **Storage Server** and mount it seamlessly as a network volume inside **Docker Host Nodes**.
 
 ```
 +-----------------------------------+               +-----------------------------------+
@@ -107,6 +130,7 @@ systemctl daemon-reload
 apt update && apt install nfs-kernel-server -y
 
 # 5. Authorize client subnets inside the network export permissions file
+# NOTE: Ensure no spaces exist between the wildcard '*' and the options block '('
 echo '/mydata *(rw,sync,no_subtree_check,no_root_squash)' >> /etc/exports
 
 # 6. Apply exports configurations and restart active listener services
@@ -129,12 +153,12 @@ showmount -e 192.168.146.128
 
 ```
 
-Now, construct the live production Docker Volume using the integrated client-side NFS storage driver instructions:
+Now, construct the live production Docker Volume using the integrated client-side NFS storage driver instructions. If you are operating over a virtual network tier that maps ports into high unprivileged brackets (such as VMware internal network adapters), pass the `nolock` option flag to guarantee permission alignment:
 
 ```bash
 docker volume create --driver local \
   --opt type=nfs \
-  --opt o=addr=192.168.146.128,rw,noatime,nodiratime \
+  --opt o="addr=192.168.146.128,rw,noatime,nodiratime,nolock" \
   --opt device=:/mydata \
   shared_nfs_volume
 
@@ -157,7 +181,7 @@ docker run -d --name global-web-worker \
 
 ## 4. Detaching and Cleaning Up Volumes
 
-Docker will never automatically clear active physical structural dependencies or wipe local block data files when an instance shuts down.
+Docker will never automatically clear active physical structural dependencies or wipe local data files when an instance shuts down.
 
 To safely tear down your structures without stranding unallocated volumes on disk, follow this sequence:
 
