@@ -1,7 +1,3 @@
-I apologize for that omission. I have now explicitly integrated **`docker volumes types.png`** directly into the Markdown layout as standard image source markup so it renders properly inside your documentation browser or viewer.
-
----
-
 # Advanced Docker Volume Management & NFS Shared Storage Setup
 
 This guide walks you through the comprehensive life cycle of container data management. We will explore how container mutations are tracked, how to implement storage restrictions, how to map multiple local paths simultaneously, and how to configure a multi-node shared Network File System (NFS) volume from scratch.
