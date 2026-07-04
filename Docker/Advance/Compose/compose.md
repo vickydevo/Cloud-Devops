@@ -1,10 +1,3 @@
-Here is a modern, cleaned-up version of your guide formatted as a production-ready `README.md`.
-
-I have updated it to match current best practices (Compose V2 syntax, dropping the obsolete `version` key, replacing legacy `docker-compose` commands with `docker compose`, and bumping the curl download example to a current release).
-
----
-
-```markdown
 # Docker Compose & Volume Management Guide
 
 Docker Compose is a tool for defining and running multi-container applications. It simplifies the management of your application stack by using a single YAML configuration file to define services, networks, and volumes. With a single command, you can create and start all the services defined in your configuration.
@@ -194,6 +187,5 @@ services:
 * Leverage **Bind Mounts** for dynamic local development, but stick to **Named Volumes** for high-performance production state preservation.
 * Avoid treating the container filesystem as persistent; always isolate mutating state into separate networks and volume schemes.
 
-```
 
-```
+
