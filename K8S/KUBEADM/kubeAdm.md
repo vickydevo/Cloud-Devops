@@ -1,7 +1,7 @@
 Here is your updated, fully integrated `README.md` containing the entire installation guide alongside your newly verified validation tests for Calico CNI auto-detection.
 
 
-# Kubernetes Cluster Installation Guide (v1.34)
+# Kubernetes Cluster Installation Guide (v1.35)
 
 This guide walks you through setting up a Kubernetes cluster using the **CRI-O** container runtime interface. The environment consists of one control-plane node (`manager01`) and two worker nodes (`node01`, `node02`).
 
@@ -36,14 +36,13 @@ Execute this script on **ALL** nodes (`manager01`, `node01`, `node02`). It handl
 Create a file named `script.sh` on each machine:
 
 ```bash
-cat << 'EOF' > script.sh
 #!/bin/bash
 
 # Exit immediately if a command exits with a non-zero status
 set -e
 
 echo "========================================================"
-echo "  Starting Kubernetes v1.34 & CRI-O Bootstrap Script  "
+echo "  Starting Kubernetes v1.35 & CRI-O Bootstrap Script   "
 echo "========================================================"
 echo ""
 
@@ -95,8 +94,8 @@ echo "Creating secure keyrings directory (/etc/apt/keyrings)..."
 sudo mkdir -p -m 755 /etc/apt/keyrings
 
 echo "Exporting Kubernetes and CRI-O versions (Target: v1.34)..."
-export KUBERNETES_VERSION=v1.34
-export CRIO_VERSION=v1.34
+export KUBERNETES_VERSION=v1.35
+export CRIO_VERSION=v1.35
 echo "[SUCCESS] Directory and version environment variables prepared."
 echo ""
 
@@ -104,11 +103,11 @@ echo ""
 # 5. CONFIGURE KUBERNETES APT REPOSITORY
 # ==============================================================================
 echo "Downloading official Kubernetes public GPG signing key..."
-curl -fsSL "[https://pkgs.k8s.io/core:/stable:/$KUBERNETES_VERSION/deb/Release.key](https://pkgs.k8s.io/core:/stable:/$KUBERNETES_VERSION/deb/Release.key)" | \
+curl -fsSL "https://pkgs.k8s.io/core:/stable:/$KUBERNETES_VERSION/deb/Release.key" | \
     sudo gpg --batch --yes --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
 echo "Adding Kubernetes apt repository source definition..."
-echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] [https://pkgs.k8s.io/core:/stable:/$KUBERNETES_VERSION/deb/](https://pkgs.k8s.io/core:/stable:/$KUBERNETES_VERSION/deb/) /" | \
+echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/$KUBERNETES_VERSION/deb/ /" | \
     sudo tee /etc/apt/sources.list.d/kubernetes.list > /dev/null
 echo "[SUCCESS] Kubernetes repository setup complete."
 echo ""
@@ -117,11 +116,11 @@ echo ""
 # 6. CONFIGURE CRI-O REPOSITORY
 # ==============================================================================
 echo "Downloading official CRI-O container runtime GPG signing key..."
-curl -fsSL "[https://download.opensuse.org/repositories/isv:/cri-o:/stable:/$CRIO_VERSION/deb/Release.key](https://download.opensuse.org/repositories/isv:/cri-o:/stable:/$CRIO_VERSION/deb/Release.key)" | \
+curl -fsSL "https://download.opensuse.org/repositories/isv:/cri-o:/stable:/$CRIO_VERSION/deb/Release.key" | \
     sudo gpg --batch --yes --dearmor -o /etc/apt/keyrings/cri-o-apt-keyring.gpg
 
 echo "Adding CRI-O apt repository source definition..."
-echo "deb [signed-by=/etc/apt/keyrings/cri-o-apt-keyring.gpg] [https://download.opensuse.org/repositories/isv:/cri-o:/stable:/$CRIO_VERSION/deb/](https://download.opensuse.org/repositories/isv:/cri-o:/stable:/$CRIO_VERSION/deb/) /" | \
+echo "deb [signed-by=/etc/apt/keyrings/cri-o-apt-keyring.gpg] https://download.opensuse.org/repositories/isv:/cri-o:/stable:/$CRIO_VERSION/deb/ /" | \
     sudo tee /etc/apt/sources.list.d/cri-o.list > /dev/null
 echo "[SUCCESS] CRI-O repository setup complete."
 echo ""
@@ -155,9 +154,8 @@ echo "[SUCCESS] CRI-O and Kubelet services are actively running."
 echo ""
 
 echo "========================================================"
-echo "        Node Setup Complete! Ready for Cluster         "
+echo "         Node Setup Complete! Ready for Cluster         "
 echo "========================================================"
-EOF
 
 ```
 
@@ -270,11 +268,17 @@ kubeadm token create --print-join-command
 Execute these status checks exclusively from `manager01` to confirm the condition of infrastructure objects:
 
 ```bash
+#
+kubectl config view
+#
+kubectl config current-context
 # Check Status and IP Assignments of Compute Infrastructure Nodes
 kubectl get nodes -o wide
 
 # Check Status of Core Cluster Daemon Components across Namespaces
 kubectl get pods -A
+
+kubectl get pods -n kube-system -o wide
 
 ```
 

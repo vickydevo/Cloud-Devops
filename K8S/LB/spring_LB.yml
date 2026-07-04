@@ -1,0 +1,44 @@
+#If running in EKS, AKS, or GKE, 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springboot-deployment-lb
+  labels:
+    app: spring-lb
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: spring-lb
+  template:
+    metadata:
+      labels:
+        app: spring-lb
+    spec:
+      containers:
+      - name: springboot
+        image: vignan91/spring-test:30aug
+        ports:
+        - containerPort: 8081
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1024Mi"
+            cpu: "1000m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spring-service-lb
+  labels:
+    app: spring
+spec:
+  type: LoadBalancer
+  selector:
+    app: spring-lb
+  ports:
+    - protocol: TCP
+      port: 8081
+      targetPort: 8081
