@@ -174,6 +174,8 @@ sudo visudo
 Add under `# User privilege specification`:
 ```sh
 devops ALL=(ALL:ALL) NOPASSWD:ALL
+
+test    ALL=(ALL:ALL) /usr/bin/apt update, /usr/bin/apt install *, /usr/bin/chsh dev
 ```
 
 
